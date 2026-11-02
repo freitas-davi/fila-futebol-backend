@@ -1,0 +1,30 @@
+package pilantras.repository;
+
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import jakarta.enterprise.context.ApplicationScoped;
+import pilantras.domain.entities.JogadorSessao;
+
+import java.util.List;
+
+@ApplicationScoped
+public class JogadorSessaoRepository implements PanacheRepository<JogadorSessao> {
+
+    public int proximaPosicao(Long sessaoId) {
+        Integer max = getEntityManager().createQuery(
+                        "select max(j.posicaoFila) from JogadorSessao j where j.sessao.id = :id",
+                        Integer.class
+                )
+                .setParameter("id", sessaoId)
+                .getSingleResult();
+
+        return max == null ? 1 : max + 1;
+    }
+
+    public List<JogadorSessao> listarPorSessao(Long sessaoId) {
+        return list(
+                "sessao.id = ?1 order by posicaoFila",
+                sessaoId
+        );
+    }
+
+}

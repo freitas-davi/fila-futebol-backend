@@ -17,19 +17,19 @@ import java.util.List;
 @ApplicationScoped
 public class FilaService {
 
-    private final SessaoRepository sessaoRepository;
+    private final SessaoService sessaoService;
     private final JogadorSessaoRepository jogadorRepository;
 
-    public FilaService(SessaoRepository sessaoRepository,
+    public FilaService(SessaoService sessaoService,
                        JogadorSessaoRepository jogadorRepository) {
-        this.sessaoRepository = sessaoRepository;
+        this.sessaoService = sessaoService;
         this.jogadorRepository = jogadorRepository;
     }
 
     @Transactional
     public JogadorSessao adicionar(Long sessaoId, AddJogadorRequest req) {
 
-        Sessao sessao = buscarSessaoAtiva(sessaoId);
+        Sessao sessao = sessaoService.buscarSessaoAtiva(sessaoId);
 
         JogadorSessao j = new JogadorSessao();
         j.sessao = sessao;
@@ -51,9 +51,7 @@ public class FilaService {
     }
 
     @Transactional
-    public JogadorSessao atualizarCategoria(Long sessaoId,
-                                            Long jogadorId,
-                                            Categoria categoria)
+    public JogadorSessao atualizarCategoria(Long sessaoId, Long jogadorId, Categoria categoria)
     {
         JogadorSessao j = buscarJogador(sessaoId, jogadorId);
         j.categoria = categoria;
@@ -61,18 +59,13 @@ public class FilaService {
     }
 
     public List<JogadorSessao> listar(Long sessaoId) {
-        buscarSessaoAtiva(sessaoId);
+        sessaoService.buscarSessaoAtiva(sessaoId);
         return jogadorRepository.listarPorSessao(sessaoId);
     }
 
-    private Sessao buscarSessaoAtiva(Long sessaoId) {
-        return sessaoRepository.findByIdOptional(sessaoId)
-                .filter(s -> s.status == Sessao.Status.ATIVA)
-                .orElseThrow(() -> new NotFoundException("Sessão ativa não encontrada"));
-    }
-
     private JogadorSessao buscarJogador(Long sessaoId, Long jogadorId) {
-        buscarSessaoAtiva(sessaoId);
+        sessaoService.buscarSessaoAtiva(sessaoId);
+
         return jogadorRepository.findByIdOptional(jogadorId)
                 .filter(j -> j.sessao.id.equals(sessaoId))
                 .orElseThrow(() -> new NotFoundException("Jogador não encontrado na sessão"));

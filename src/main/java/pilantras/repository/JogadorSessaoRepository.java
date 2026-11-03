@@ -27,4 +27,12 @@ public class JogadorSessaoRepository implements PanacheRepository<JogadorSessao>
         );
     }
 
+    public List<JogadorSessao> primeirosDaFilaComCategoria(Long sessaoId, int limite) {
+        return find(
+                "sessao.id = ?1 and status = ?2 and categoria is not null order by posicaoFila",
+                sessaoId, JogadorSessao.Status.FILA)
+                .page(0, limite)
+                .list();
+    }
+
 }

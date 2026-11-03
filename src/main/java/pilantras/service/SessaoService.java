@@ -48,6 +48,12 @@ public class SessaoService {
                 .orElseThrow(() -> new NotFoundException("Nenhuma sessão ativa"));
     }
 
+    public Sessao buscarSessaoAtiva(Long sessaoId) {
+        return repository.findByIdOptional(sessaoId)
+                .filter(s -> s.status == Sessao.Status.ATIVA)
+                .orElseThrow(() -> new NotFoundException("Sessão ativa não encontrada"));
+    }
+
     private boolean expirada(Sessao s) {
         return Duration.between(
                 s.criadoEm, LocalDateTime.now()

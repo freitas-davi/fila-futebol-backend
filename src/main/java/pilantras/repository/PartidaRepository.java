@@ -23,7 +23,9 @@ public class PartidaRepository implements PanacheRepository<Partida> {
                 .setParameter("id", sessaoId)
                 .getSingleResult();
 
-        return max == null ? 1 : max + 1;
+        return max == null
+                ? 1
+                : max + 1;
     }
 
 }

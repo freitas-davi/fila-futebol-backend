@@ -5,7 +5,6 @@ import pilantras.domain.enums.Categoria;
 import pilantras.domain.enums.LadoTime;
 
 public record JogadorResponse(
-        Long id,
 
         String nome,
 
@@ -20,7 +19,7 @@ public record JogadorResponse(
 
     public static JogadorResponse from(JogadorSessao j) {
         return new JogadorResponse(
-                j.id, j.nome, j.categoria, j.status, j.lado, j.posicaoFila
+                j.nome, j.categoria, j.status, j.lado, j.posicaoFila
         );
     }
 

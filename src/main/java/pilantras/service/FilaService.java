@@ -10,7 +10,6 @@ import pilantras.domain.entities.Sessao;
 import pilantras.domain.enums.Categoria;
 import pilantras.dto.AddJogadorRequest;
 import pilantras.repository.JogadorSessaoRepository;
-import pilantras.repository.SessaoRepository;
 
 import java.util.List;
 
@@ -60,7 +59,12 @@ public class FilaService {
 
     public List<JogadorSessao> listar(Long sessaoId) {
         sessaoService.buscarSessaoAtiva(sessaoId);
-        return jogadorRepository.listarPorSessao(sessaoId);
+        List<JogadorSessao> jogadores = jogadorRepository.listarPorSessao(sessaoId);
+
+        if (jogadores.isEmpty()) {
+            throw new NotFoundException("Nenhum jogador encontrado na sessão");
+        }
+        return jogadores;
     }
 
     private JogadorSessao buscarJogador(Long sessaoId, Long jogadorId) {

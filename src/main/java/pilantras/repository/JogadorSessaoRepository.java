@@ -3,6 +3,7 @@ package pilantras.repository;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import pilantras.domain.entities.JogadorSessao;
+import pilantras.domain.enums.LadoTime;
 
 import java.util.List;
 
@@ -17,7 +18,9 @@ public class JogadorSessaoRepository implements PanacheRepository<JogadorSessao>
                 .setParameter("id", sessaoId)
                 .getSingleResult();
 
-        return max == null ? 1 : max + 1;
+        return max == null
+                ? 1
+                : max + 1;
     }
 
     public List<JogadorSessao> listarPorSessao(Long sessaoId) {
@@ -33,6 +36,23 @@ public class JogadorSessaoRepository implements PanacheRepository<JogadorSessao>
                 sessaoId, JogadorSessao.Status.FILA)
                 .page(0, limite)
                 .list();
+    }
+
+    public List<JogadorSessao> primeirosProximosDaFila(Long sessaoId, int limite) {
+        return find("sessao.id = ?1 and status = ?2 order by posicaoFila",
+                sessaoId, JogadorSessao.Status.FILA).page(0, limite).list();
+    }
+
+    public List<JogadorSessao> emCampo(Long sessaoId, LadoTime lado) {
+        return list(
+                "sessao.id = ?1 and status = ?2 and lado = ?3 order by posicaoFila",
+                sessaoId, JogadorSessao.Status.JOGANDO, lado);
+    }
+
+    public long contarNaFila(Long sessaoId) {
+        return count(
+                "sessao.id = ?1 and status = ?2",
+                sessaoId, JogadorSessao.Status.FILA);
     }
 
 }

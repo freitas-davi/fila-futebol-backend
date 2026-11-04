@@ -15,6 +15,7 @@ import pilantras.repository.PartidaRepository;
 
 import java.util.List;
 
+
 @ApplicationScoped
 public class PartidaService {
 
@@ -56,13 +57,24 @@ public class PartidaService {
         Sorteador.Times times = sorteador.sortear(escolhidos);
         times.ladoA().forEach(j -> colocarEmCampo(j, LadoTime.A));
         times.ladoB().forEach(j -> colocarEmCampo(j, LadoTime.B));
+        jogadorRepository.flush();
 
-        Partida partida = new Partida();
-        partida.sessao = sessao;
-        partida.numero = partidaRepository.proximoNumero(sessaoId);
-        partidaRepository.persist(partida);
+        return abrirPartida(sessao);
+    }
 
-        return PartidaResponse.from(partida, times);
+    private PartidaResponse abrirPartida(Sessao sessao) {
+        List<JogadorSessao> ladoA = jogadorRepository.emCampo(sessao.id, LadoTime.A);
+        List<JogadorSessao> ladoB = jogadorRepository.emCampo(sessao.id, LadoTime.B);
+
+        Partida p = new Partida();
+        p.sessao = sessao;
+        p.numero = partidaRepository.proximoNumero(sessao.id);
+        partidaRepository.persist(p);
+
+        return PartidaResponse.from(
+                p, new Sorteador.Times(
+                        ladoA, ladoB
+                ));
     }
 
     private void colocarEmCampo(JogadorSessao j, LadoTime lado) {

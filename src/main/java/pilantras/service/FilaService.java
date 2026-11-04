@@ -8,7 +8,7 @@ import jakarta.ws.rs.core.Response;
 import pilantras.domain.entities.JogadorSessao;
 import pilantras.domain.entities.Sessao;
 import pilantras.domain.enums.Categoria;
-import pilantras.dto.AddJogadorRequest;
+import pilantras.dto.AddJogadorRequestDTO;
 import pilantras.repository.JogadorSessaoRepository;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class FilaService {
     }
 
     @Transactional
-    public JogadorSessao adicionar(Long sessaoId, AddJogadorRequest req) {
+    public JogadorSessao adicionar(Long sessaoId, AddJogadorRequestDTO req) {
 
         Sessao sessao = sessaoService.buscarSessaoAtiva(sessaoId);
 

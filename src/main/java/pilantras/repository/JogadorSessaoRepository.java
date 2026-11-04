@@ -13,8 +13,7 @@ public class JogadorSessaoRepository implements PanacheRepository<JogadorSessao>
     public int proximaPosicao(Long sessaoId) {
         Integer max = getEntityManager().createQuery(
                         "select max(j.posicaoFila) from JogadorSessao j where j.sessao.id = :id",
-                        Integer.class
-                )
+                        Integer.class)
                 .setParameter("id", sessaoId)
                 .getSingleResult();
 

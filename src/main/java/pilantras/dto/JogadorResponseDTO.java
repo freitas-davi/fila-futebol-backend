@@ -4,7 +4,7 @@ import pilantras.domain.entities.JogadorSessao;
 import pilantras.domain.enums.Categoria;
 import pilantras.domain.enums.LadoTime;
 
-public record JogadorResponse(
+public record JogadorResponseDTO(
 
         String nome,
 
@@ -17,8 +17,8 @@ public record JogadorResponse(
         Integer posicaoFila
 ) {
 
-    public static JogadorResponse from(JogadorSessao j) {
-        return new JogadorResponse(
+    public static JogadorResponseDTO from(JogadorSessao j) {
+        return new JogadorResponseDTO(
                 j.nome, j.categoria, j.status, j.lado, j.posicaoFila
         );
     }

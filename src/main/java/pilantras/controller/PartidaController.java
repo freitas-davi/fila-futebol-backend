@@ -6,6 +6,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import pilantras.dto.ResultadoPartidaRequestDTO;
 import pilantras.service.PartidaService;
 
 
@@ -25,6 +26,17 @@ public class PartidaController {
         return Response
                 .status(Response.Status.CREATED)
                 .entity(service.iniciar(sessaoId)).build();
+    }
+
+    @POST
+    @Path("/{partidaId}/resultado")
+    public Response registrarResultado(@PathParam("sessaoId") Long sessaoId,
+                                       @PathParam("partidaId") Long partidaId,
+                                       ResultadoPartidaRequestDTO req)
+    {
+        return Response.ok(
+                service.registrarResultado(sessaoId, partidaId, req)
+        ).build();
     }
 
 }

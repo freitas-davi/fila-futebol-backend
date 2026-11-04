@@ -3,7 +3,7 @@ package pilantras.controller;
 import jakarta.ws.rs.*;
 
 import jakarta.ws.rs.core.MediaType;
-import pilantras.dto.SessaoResponse;
+import pilantras.dto.SessaoResponseDTO;
 import pilantras.service.SessaoService;
 
 @Path("/sessoes")
@@ -17,13 +17,13 @@ public class SessaoController {
     }
 
     @POST
-    public SessaoResponse criar() {
-        return SessaoResponse.from(service.obterOuCriar());
+    public SessaoResponseDTO criar() {
+        return SessaoResponseDTO.from(service.obterOuCriar());
     }
 
     @GET
     @Path("/ativa")
-    public SessaoResponse ativa() {
-        return SessaoResponse.from(service.buscarAtiva());
+    public SessaoResponseDTO ativa() {
+        return SessaoResponseDTO.from(service.buscarAtiva());
     }
 }

@@ -6,8 +6,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import pilantras.domain.entities.JogadorSessao;
 import pilantras.domain.enums.Categoria;
-import pilantras.dto.AddJogadorRequest;
-import pilantras.dto.JogadorResponse;
+import pilantras.dto.AddJogadorRequestDTO;
+import pilantras.dto.JogadorResponseDTO;
 import pilantras.service.FilaService;
 
 import java.util.List;
@@ -25,17 +25,17 @@ public class FilaController {
 
     @POST
     public Response adicionar(@PathParam("sessaoId") Long sessaoId,
-                              @Valid AddJogadorRequest req)
+                              @Valid AddJogadorRequestDTO req)
     {
         JogadorSessao j = service.adicionar(sessaoId, req);
         return Response.status(Response.Status.CREATED)
-                .entity(JogadorResponse.from(j)).build();
+                .entity(JogadorResponseDTO.from(j)).build();
     }
 
     @GET
-    public List<JogadorResponse> listar(@PathParam("sessaoId") Long sessaoId) {
+    public List<JogadorResponseDTO> listar(@PathParam("sessaoId") Long sessaoId) {
         return service.listar(sessaoId)
-                .stream().map(JogadorResponse::from)
+                .stream().map(JogadorResponseDTO::from)
                 .toList();
     }
 
@@ -49,10 +49,10 @@ public class FilaController {
 
     @PATCH
     @Path("/{jogadorId}")
-    public JogadorResponse atualizarCategoria(@PathParam("sessaoId") Long sessaoId,
-                                              @PathParam("jogadorId") Long jogadorId,
-                                              Categoria categoria) {
-        return JogadorResponse.from(
+    public JogadorResponseDTO atualizarCategoria(@PathParam("sessaoId") Long sessaoId,
+                                                 @PathParam("jogadorId") Long jogadorId,
+                                                 Categoria categoria) {
+        return JogadorResponseDTO.from(
                 service.atualizarCategoria(
                         sessaoId, jogadorId, categoria)
         );

@@ -3,7 +3,7 @@ package pilantras.dto;
 import pilantras.domain.entities.Sessao;
 import java.time.LocalDate;
 
-public record SessaoResponse(
+public record SessaoResponseDTO(
 
         Long id,
 
@@ -13,8 +13,8 @@ public record SessaoResponse(
 
 ) {
 
-    public static SessaoResponse from(Sessao s) {
-        return new SessaoResponse(
+    public static SessaoResponseDTO from(Sessao s) {
+        return new SessaoResponseDTO(
                 s.id,
                 s.data,
                 s.status

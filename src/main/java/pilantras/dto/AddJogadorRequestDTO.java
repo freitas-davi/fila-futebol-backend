@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import pilantras.domain.enums.Categoria;
 
-public record AddJogadorRequest(
+public record AddJogadorRequestDTO(
 
         @NotBlank
         @Size(max = 60)

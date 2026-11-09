@@ -3,8 +3,6 @@ package pilantras.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import pilantras.domain.entities.JogadorSessao;
 import pilantras.domain.entities.Sessao;
 import pilantras.domain.enums.Categoria;
@@ -42,9 +40,11 @@ public class FilaService {
 
     @Transactional
     public void remover(Long sessaoId, Long jogadorId) {
+
         JogadorSessao j = buscarJogador(sessaoId, jogadorId);
+
         if (j.status == JogadorSessao.Status.JOGANDO) {
-            throw new WebApplicationException("Jogador está em campo", Response.Status.CONFLICT);
+            substituirJogadorEmCampo(j);
         }
         jogadorRepository.delete(j);
     }
@@ -73,6 +73,17 @@ public class FilaService {
         return jogadorRepository.findByIdOptional(jogadorId)
                 .filter(j -> j.sessao.id.equals(sessaoId))
                 .orElseThrow(() -> new NotFoundException("Jogador não encontrado na sessão"));
+    }
+
+    private void substituirJogadorEmCampo(JogadorSessao jogadorRemovido) {
+
+        jogadorRepository.primeirosProximosDaFila(jogadorRemovido.sessao.id, 1)
+                .stream()
+                .findFirst()
+                .ifPresent(proximo -> {
+                    proximo.status = JogadorSessao.Status.JOGANDO;
+                    proximo.lado = jogadorRemovido.lado;
+                });
     }
 
 }

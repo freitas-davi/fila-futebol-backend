@@ -2,12 +2,10 @@ package pilantras.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import pilantras.client.Sorteador;
 import pilantras.domain.entities.JogadorSessao;
-import pilantras.domain.entities.Partida;
 import pilantras.domain.entities.Sessao;
 import pilantras.domain.enums.LadoTime;
 import pilantras.dto.PartidaResponseDTO;
@@ -15,7 +13,6 @@ import pilantras.dto.ResultadoPartidaRequestDTO;
 import pilantras.repository.JogadorSessaoRepository;
 import pilantras.repository.PartidaRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -67,25 +64,14 @@ public class PartidaService {
     }
 
     @Transactional
-    public PartidaResponseDTO registrarResultado(Long sessaoId, Long partidaId, ResultadoPartidaRequestDTO req) {
+    public PartidaResponseDTO registrarResultado(Long sessaoId, ResultadoPartidaRequestDTO req) {
         Sessao sessao = sessaoService.buscarSessaoAtiva(sessaoId);
-        Partida partida = partidaRepository.findByIdOptional(partidaId)
-                .filter(p -> p.sessao.id.equals(sessaoId))
-                .orElseThrow(() -> new NotFoundException("Partida não encontrada na sessão"));
-
-        if (partida.status != Partida.Status.EM_ANDAMENTO) {
-            throw new WebApplicationException("Partida já finalizada", Response.Status.CONFLICT);
-        }
 
         LadoTime perdedor = switch (req.resultado()) {
             case LADO_A -> LadoTime.B;
             case LADO_B -> LadoTime.A;
             case EMPATE -> throw new WebApplicationException("Empate ainda não implementado", 501);
         };
-
-        partida.status = Partida.Status.FINALIZADA;
-        partida.resultado = req.resultado();
-        partida.finalizadaEm = LocalDateTime.now();
 
         mandarParaFimDaFila(sessao, perdedor);
         entrarEmCampo(sessao, perdedor);
@@ -96,16 +82,10 @@ public class PartidaService {
     private PartidaResponseDTO abrirPartida(Sessao sessao) {
         List<JogadorSessao> ladoA = jogadorRepository.emCampo(sessao.id, LadoTime.A);
         List<JogadorSessao> ladoB = jogadorRepository.emCampo(sessao.id, LadoTime.B);
-
-        Partida p = new Partida();
-        p.sessao = sessao;
-        p.numero = partidaRepository.proximoNumero(sessao.id);
-        partidaRepository.persist(p);
+        List<JogadorSessao> fila = jogadorRepository.naFila(sessao.id);
 
         return PartidaResponseDTO.from(
-                p, new Sorteador.Times(
-                        ladoA, ladoB
-                ));
+                new Sorteador.Times(ladoA, ladoB), fila);
     }
 
     private void colocarEmCampo(JogadorSessao j, LadoTime lado) {

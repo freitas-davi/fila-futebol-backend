@@ -42,16 +42,15 @@ public class JogadorSessaoRepository implements PanacheRepository<JogadorSessao>
                 sessaoId, JogadorSessao.Status.FILA).page(0, limite).list();
     }
 
+    public List<JogadorSessao> naFila(Long sessaoId) {
+        return find("sessao.id = ?1 and status = ?2 order by posicaoFila",
+                sessaoId, JogadorSessao.Status.FILA).list();
+    }
+
     public List<JogadorSessao> emCampo(Long sessaoId, LadoTime lado) {
         return list(
                 "sessao.id = ?1 and status = ?2 and lado = ?3 order by posicaoFila",
                 sessaoId, JogadorSessao.Status.JOGANDO, lado);
-    }
-
-    public long contarNaFila(Long sessaoId) {
-        return count(
-                "sessao.id = ?1 and status = ?2",
-                sessaoId, JogadorSessao.Status.FILA);
     }
 
 }

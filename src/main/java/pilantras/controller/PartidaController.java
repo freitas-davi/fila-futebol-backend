@@ -29,14 +29,12 @@ public class PartidaController {
     }
 
     @POST
-    @Path("/{partidaId}/resultado")
+    @Path("/resultado")
     public Response registrarResultado(@PathParam("sessaoId") Long sessaoId,
-                                       @PathParam("partidaId") Long partidaId,
                                        ResultadoPartidaRequestDTO req)
     {
         return Response.ok(
-                service.registrarResultado(sessaoId, partidaId, req)
-        ).build();
+                service.registrarResultado(sessaoId, req)).build();
     }
 
 }

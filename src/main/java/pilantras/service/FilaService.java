@@ -3,8 +3,6 @@ package pilantras.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import pilantras.domain.entities.JogadorSessao;
 import pilantras.domain.entities.Sessao;
 import pilantras.domain.enums.Categoria;
@@ -26,9 +24,8 @@ public class FilaService {
     }
 
     @Transactional
-    public JogadorSessao adicionar(Long sessaoId, AddJogadorRequestDTO req) {
-
-        Sessao sessao = sessaoService.buscarSessaoAtiva(sessaoId);
+    public JogadorSessao adicionarJogadorLista(Long sessaoId, AddJogadorRequestDTO req) {
+        Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
 
         JogadorSessao j = new JogadorSessao();
         j.sessao = sessao;
@@ -41,25 +38,27 @@ public class FilaService {
     }
 
     @Transactional
-    public void remover(Long sessaoId, Long jogadorId) {
+    public void removerJogadorLista(Long sessaoId, Long jogadorId) {
         JogadorSessao j = buscarJogador(sessaoId, jogadorId);
+
         if (j.status == JogadorSessao.Status.JOGANDO) {
-            throw new WebApplicationException("Jogador está em campo", Response.Status.CONFLICT);
+            substituirJogadorEmCampo(j);
         }
         jogadorRepository.delete(j);
     }
 
     @Transactional
-    public JogadorSessao atualizarCategoria(Long sessaoId, Long jogadorId, Categoria categoria)
-    {
+    public JogadorSessao atualizarCategoria(Long sessaoId, Long jogadorId, Categoria categoria) {
         JogadorSessao j = buscarJogador(sessaoId, jogadorId);
         j.categoria = categoria;
         return j;
     }
 
-    public List<JogadorSessao> listar(Long sessaoId) {
-        sessaoService.buscarSessaoAtiva(sessaoId);
-        List<JogadorSessao> jogadores = jogadorRepository.listarPorSessao(sessaoId);
+    public List<JogadorSessao> listarJogadores(Long sessaoId) {
+        sessaoService.buscarSessaoAtivaPorId(sessaoId);
+
+        List<JogadorSessao> jogadores =
+                jogadorRepository.listarPorSessao(sessaoId);
 
         if (jogadores.isEmpty()) {
             throw new NotFoundException("Nenhum jogador encontrado na sessão");
@@ -68,11 +67,21 @@ public class FilaService {
     }
 
     private JogadorSessao buscarJogador(Long sessaoId, Long jogadorId) {
-        sessaoService.buscarSessaoAtiva(sessaoId);
-
-        return jogadorRepository.findByIdOptional(jogadorId)
+        sessaoService.buscarSessaoAtivaPorId(sessaoId);
+        return jogadorRepository
+                .findByIdOptional(jogadorId)
                 .filter(j -> j.sessao.id.equals(sessaoId))
                 .orElseThrow(() -> new NotFoundException("Jogador não encontrado na sessão"));
+    }
+
+    private void substituirJogadorEmCampo(JogadorSessao jogadorRemovido) {
+        jogadorRepository.primeirosProximosDaFila(jogadorRemovido.sessao.id, 1)
+                .stream()
+                .findFirst()
+                .ifPresent(proximo -> {
+                    proximo.status = JogadorSessao.Status.JOGANDO;
+                    proximo.lado = jogadorRemovido.lado;
+                });
     }
 
 }

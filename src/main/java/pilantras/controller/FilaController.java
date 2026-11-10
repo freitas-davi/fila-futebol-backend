@@ -25,16 +25,15 @@ public class FilaController {
 
     @POST
     public Response adicionar(@PathParam("sessaoId") Long sessaoId,
-                              @Valid AddJogadorRequestDTO req)
-    {
-        JogadorSessao j = service.adicionar(sessaoId, req);
+                              @Valid AddJogadorRequestDTO req) {
+        JogadorSessao j = service.adicionarJogadorLista(sessaoId, req);
         return Response.status(Response.Status.CREATED)
                 .entity(JogadorResponseDTO.from(j)).build();
     }
 
     @GET
     public List<JogadorResponseDTO> listar(@PathParam("sessaoId") Long sessaoId) {
-        return service.listar(sessaoId)
+        return service.listarJogadores(sessaoId)
                 .stream().map(JogadorResponseDTO::from)
                 .toList();
     }
@@ -43,7 +42,7 @@ public class FilaController {
     @Path("/{jogadorId}")
     public Response remover(@PathParam("sessaoId") Long sessaoId,
                             @PathParam("jogadorId") Long jogadorId) {
-        service.remover(sessaoId, jogadorId);
+        service.removerJogadorLista(sessaoId, jogadorId);
         return Response.noContent().build();
     }
 
@@ -53,8 +52,7 @@ public class FilaController {
                                                  @PathParam("jogadorId") Long jogadorId,
                                                  Categoria categoria) {
         return JogadorResponseDTO.from(
-                service.atualizarCategoria(
-                        sessaoId, jogadorId, categoria)
+                service.atualizarCategoria(sessaoId, jogadorId, categoria)
         );
     }
 

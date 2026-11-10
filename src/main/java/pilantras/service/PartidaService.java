@@ -40,7 +40,7 @@ public class PartidaService {
 
     @Transactional
     public PartidaResponseDTO iniciar(Long sessaoId) {
-        Sessao sessao = sessaoService.buscarSessaoAtiva(sessaoId);
+        Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
 
         if (partidaRepository.buscarEmAndamento(sessaoId).isPresent()) {
             throw new WebApplicationException("Já existe uma partida em andamento", Response.Status.CONFLICT);
@@ -56,8 +56,8 @@ public class PartidaService {
         }
 
         Sorteador.Times times = sorteador.sortear(escolhidos);
-        times.ladoA().forEach(j -> colocarEmCampo(j, LadoTime.A));
-        times.ladoB().forEach(j -> colocarEmCampo(j, LadoTime.B));
+        times.ladoA().forEach(j -> escolherLadoCampo(j, LadoTime.A));
+        times.ladoB().forEach(j -> escolherLadoCampo(j, LadoTime.B));
         jogadorRepository.flush();
 
         return abrirPartida(sessao);
@@ -65,7 +65,7 @@ public class PartidaService {
 
     @Transactional
     public PartidaResponseDTO registrarResultado(Long sessaoId, ResultadoPartidaRequestDTO req) {
-        Sessao sessao = sessaoService.buscarSessaoAtiva(sessaoId);
+        Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
 
         LadoTime perdedor = switch (req.resultado()) {
             case LADO_A -> LadoTime.B;
@@ -74,10 +74,14 @@ public class PartidaService {
         };
 
         mandarParaFimDaFila(sessao, perdedor);
-        entrarEmCampo(sessao, perdedor);
+        primeirosProximosEmCampo(sessao, perdedor);
 
         return abrirPartida(sessao);
     }
+
+    /*
+     * Métodos helpers
+     */
 
     private PartidaResponseDTO abrirPartida(Sessao sessao) {
         List<JogadorSessao> ladoA = jogadorRepository.emCampo(sessao.id, LadoTime.A);
@@ -86,11 +90,6 @@ public class PartidaService {
 
         return PartidaResponseDTO.from(
                 new Sorteador.Times(ladoA, ladoB), fila);
-    }
-
-    private void colocarEmCampo(JogadorSessao j, LadoTime lado) {
-        j.status = JogadorSessao.Status.JOGANDO;
-        j.lado = lado;
     }
 
     private void mandarParaFimDaFila(Sessao sessao, LadoTime lado) {
@@ -102,8 +101,14 @@ public class PartidaService {
         }
     }
 
-    private void entrarEmCampo(Sessao sessao, LadoTime lado) {
+    private void primeirosProximosEmCampo(Sessao sessao, LadoTime lado) {
         jogadorRepository.primeirosProximosDaFila(sessao.id, POR_TIME)
-                .forEach(j -> colocarEmCampo(j, lado));
+                .forEach(j -> escolherLadoCampo(j, lado));
     }
+
+    private void escolherLadoCampo(JogadorSessao j, LadoTime lado) {
+        j.status = JogadorSessao.Status.JOGANDO;
+        j.lado = lado;
+    }
+
 }

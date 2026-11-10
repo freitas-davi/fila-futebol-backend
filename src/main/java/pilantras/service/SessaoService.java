@@ -25,7 +25,7 @@ public class SessaoService {
     }
 
     @Transactional
-    public Sessao obterOuCriar() {
+    public Sessao obterOuCriarSessao() {
         Optional<Sessao> ativa = repository.buscarAtiva();
 
         if (ativa.isPresent()) {
@@ -35,7 +35,6 @@ public class SessaoService {
             ativa.get().status = Sessao.Status.ENCERRADA;
             repository.flush();
         }
-
         Sessao s = new Sessao();
         s.data = LocalDate.now(ZONA);
         s.status = Sessao.Status.ATIVA;
@@ -48,7 +47,7 @@ public class SessaoService {
                 .orElseThrow(() -> new NotFoundException("Nenhuma sessão ativa"));
     }
 
-    public Sessao buscarSessaoAtiva(Long sessaoId) {
+    public Sessao buscarSessaoAtivaPorId(Long sessaoId) {
         return repository.findByIdOptional(sessaoId)
                 .filter(s -> s.status == Sessao.Status.ATIVA)
                 .orElseThrow(() -> new NotFoundException("Sessão ativa não encontrada"));

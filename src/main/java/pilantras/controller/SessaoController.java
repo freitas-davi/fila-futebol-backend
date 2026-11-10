@@ -18,7 +18,7 @@ public class SessaoController {
 
     @POST
     public SessaoResponseDTO criar() {
-        return SessaoResponseDTO.from(service.obterOuCriar());
+        return SessaoResponseDTO.from(service.obterOuCriarSessao());
     }
 
     @GET

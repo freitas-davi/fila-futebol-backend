@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import pilantras.domain.entities.JogadorSessao;
 import pilantras.domain.enums.Categoria;
 import pilantras.dto.AddJogadorRequestDTO;
@@ -24,6 +25,7 @@ public class FilaController {
     }
 
     @POST
+    @Operation(summary = "Adicionar jogador", description = "Adiciona um jogador à lista da sessão.")
     public Response adicionar(@PathParam("sessaoId") Long sessaoId,
                               @Valid AddJogadorRequestDTO req) {
         JogadorSessao j = service.adicionarJogadorLista(sessaoId, req);
@@ -32,6 +34,7 @@ public class FilaController {
     }
 
     @GET
+    @Operation(summary = "Listar jogadores", description = "Retorna os jogadores da sessão.")
     public List<JogadorResponseDTO> listar(@PathParam("sessaoId") Long sessaoId) {
         return service.listarJogadores(sessaoId)
                 .stream().map(JogadorResponseDTO::from)
@@ -40,6 +43,7 @@ public class FilaController {
 
     @DELETE
     @Path("/{jogadorId}")
+    @Operation(summary = "Remover jogador", description = "Remove um jogador da lista da sessão.")
     public Response remover(@PathParam("sessaoId") Long sessaoId,
                             @PathParam("jogadorId") Long jogadorId) {
         service.removerJogadorLista(sessaoId, jogadorId);
@@ -48,6 +52,7 @@ public class FilaController {
 
     @PATCH
     @Path("/{jogadorId}")
+    @Operation(summary = "Atualizar categoria", description = "Altera a categoria de um jogador da sessão.")
     public JogadorResponseDTO atualizarCategoria(@PathParam("sessaoId") Long sessaoId,
                                                  @PathParam("jogadorId") Long jogadorId,
                                                  Categoria categoria) {

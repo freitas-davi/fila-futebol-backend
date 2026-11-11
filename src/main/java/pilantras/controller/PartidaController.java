@@ -6,6 +6,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import pilantras.dto.ResultadoPartidaRequestDTO;
 import pilantras.service.PartidaService;
 
@@ -22,6 +23,7 @@ public class PartidaController {
 
     @POST
     @Path("/iniciar")
+    @Operation(summary = "Iniciar partida", description = "Sorteia os times e inicia uma partida na sessão.")
     public Response iniciar(@PathParam("sessaoId") Long sessaoId) {
         return Response
                 .status(Response.Status.CREATED)
@@ -30,6 +32,7 @@ public class PartidaController {
 
     @POST
     @Path("/resultado")
+    @Operation(summary = "Registrar resultado", description = "Registra o resultado e atualiza os times da sessão.")
     public Response registrarResultado(@PathParam("sessaoId") Long sessaoId,
                                        ResultadoPartidaRequestDTO req)
     {

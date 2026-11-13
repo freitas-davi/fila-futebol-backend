@@ -42,12 +42,22 @@ public class PartidaService {
     public PartidaResponseDTO iniciar(Long sessaoId) {
         Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
 
+        List<JogadorSessao> escolhidos =
+                jogadorRepository.primeirosDaFilaComCategoria(sessaoId, JOGADORES_EM_CAMPO);
+        return iniciar(sessao, escolhidos);
+    }
+
+    @Transactional
+    public PartidaResponseDTO iniciarComJogadores(Long sessaoId, List<JogadorSessao> escolhidos) {
+        Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
+        return iniciar(sessao, escolhidos);
+    }
+
+    private PartidaResponseDTO iniciar(Sessao sessao, List<JogadorSessao> escolhidos) {
+        Long sessaoId = sessao.id;
         if (partidaRepository.buscarEmAndamento(sessaoId).isPresent()) {
             throw new WebApplicationException("Já existe uma partida em andamento", Response.Status.CONFLICT);
         }
-
-        List<JogadorSessao> escolhidos =
-                jogadorRepository.primeirosDaFilaComCategoria(sessaoId, JOGADORES_EM_CAMPO);
 
         if (escolhidos.size() < JOGADORES_EM_CAMPO) {
             throw new WebApplicationException(

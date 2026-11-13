@@ -19,7 +19,7 @@ public class SessaoController {
 
     @POST
     @Operation(summary = "Criar ou obter sessão", description = "Cria uma sessão ativa ou retorna a sessão ativa existente.")
-    public SessaoResponseDTO criar() {
+    public SessaoResponseDTO criarOuObter() {
         return SessaoResponseDTO.from(service.obterOuCriarSessao());
     }
 

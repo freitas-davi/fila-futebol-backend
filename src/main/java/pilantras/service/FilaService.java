@@ -3,24 +3,33 @@ package pilantras.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import pilantras.domain.entities.JogadorSessao;
 import pilantras.domain.entities.Sessao;
 import pilantras.domain.enums.Categoria;
 import pilantras.dto.AddJogadorRequestDTO;
+import pilantras.dto.PartidaResponseDTO;
 import pilantras.repository.JogadorSessaoRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
 public class FilaService {
 
+    private static final int JOGADORES_EM_CAMPO = 10;
+
     private final SessaoService sessaoService;
     private final JogadorSessaoRepository jogadorRepository;
+    private final PartidaService partidaService;
 
     public FilaService(SessaoService sessaoService,
-                       JogadorSessaoRepository jogadorRepository) {
+                       JogadorSessaoRepository jogadorRepository,
+                       PartidaService partidaService) {
         this.sessaoService = sessaoService;
         this.jogadorRepository = jogadorRepository;
+        this.partidaService = partidaService;
     }
 
     @Transactional
@@ -35,6 +44,36 @@ public class FilaService {
 
         jogadorRepository.persist(j);
         return j;
+    }
+
+    @Transactional
+    public PartidaResponseDTO adicionarJogadoresEIniciar(Long sessaoId, List<AddJogadorRequestDTO> req) {
+        Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
+        long jogadoresComCategoria = req.stream()
+                .filter(j -> j.categoria() != null)
+                .count();
+
+        if (jogadoresComCategoria < JOGADORES_EM_CAMPO) {
+            throw new WebApplicationException(
+                    "São necessários 10 jogadores com categoria marcada na lista",
+                    Response.Status.CONFLICT);
+        }
+
+        List<JogadorSessao> jogadoresEmCampo = new ArrayList<>();
+        int posicao = jogadorRepository.proximaPosicao(sessaoId);
+        for (AddJogadorRequestDTO jogadorReq : req) {
+            JogadorSessao jogador = new JogadorSessao();
+            jogador.sessao = sessao;
+            jogador.nome = jogadorReq.nome().trim();
+            jogador.categoria = jogadorReq.categoria();
+            jogador.posicaoFila = posicao++;
+            jogadorRepository.persist(jogador);
+
+            if (jogadoresEmCampo.size() < JOGADORES_EM_CAMPO && jogador.categoria != null) {
+                jogadoresEmCampo.add(jogador);
+            }
+        }
+        return partidaService.iniciarComJogadores(sessaoId, jogadoresEmCampo);
     }
 
     @Transactional

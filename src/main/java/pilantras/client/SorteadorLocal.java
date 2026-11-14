@@ -11,7 +11,7 @@ import java.util.List;
 public class SorteadorLocal implements Sorteador {
 
     @Override
-    public Times sortear(List<JogadorSessao> jogadores) {
+    public Times sortear(Long sessaoId, List<JogadorSessao> jogadores) {
         List<JogadorSessao> embaralhados = new ArrayList<>(jogadores);
 
         Collections.shuffle(embaralhados);
@@ -19,6 +19,7 @@ public class SorteadorLocal implements Sorteador {
         int metade = embaralhados.size() / 2;
 
         return new Times(
+                sessaoId,
                 embaralhados.subList(0, metade),
                 embaralhados.subList(metade, embaralhados.size())
         );

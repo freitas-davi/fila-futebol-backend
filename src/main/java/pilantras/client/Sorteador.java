@@ -6,8 +6,12 @@ import java.util.List;
 
 public interface Sorteador {
 
-    Times sortear(List<JogadorSessao> jogadores);
+    Times sortear(Long sessaoId, List<JogadorSessao> jogadores);
 
-    record Times(List<JogadorSessao> ladoA, List<JogadorSessao> ladoB) { }
+    record Times(
+            Long sessaoId,
+            List<JogadorSessao> ladoA,
+            List<JogadorSessao> ladoB
+    ) { }
 
 }

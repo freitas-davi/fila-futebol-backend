@@ -4,6 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.jboss.logging.Logger;
 import pilantras.client.Sorteador;
 import pilantras.domain.entities.JogadorSessao;
 import pilantras.domain.entities.Sessao;
@@ -19,6 +20,7 @@ import java.util.List;
 @ApplicationScoped
 public class PartidaService {
 
+    private static final Logger LOG = Logger.getLogger(PartidaService.class);
     private static final int JOGADORES_EM_CAMPO = 10;
     private static final int POR_TIME = 5;
 
@@ -40,17 +42,27 @@ public class PartidaService {
 
     @Transactional
     public PartidaResponseDTO iniciar(Long sessaoId) {
+        LOG.infof("Iniciando partida a partir da fila: sessaoId=%d", sessaoId);
         Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
 
         List<JogadorSessao> escolhidos =
                 jogadorRepository.primeirosDaFilaComCategoria(sessaoId, JOGADORES_EM_CAMPO);
-        return iniciar(sessao, escolhidos);
+        PartidaResponseDTO partida = iniciar(sessao, escolhidos);
+        LOG.infof("Partida iniciada: sessaoId=%d jogadoresEmCampo=%d", sessaoId, escolhidos.size());
+        return partida;
     }
 
     @Transactional
     public PartidaResponseDTO iniciarComJogadores(Long sessaoId, List<JogadorSessao> escolhidos) {
+        LOG.infof("Iniciando partida com jogadores selecionados: sessaoId=%d quantidade=%d",
+                sessaoId,
+                escolhidos.size()
+        );
         Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
-        return iniciar(sessao, escolhidos);
+        PartidaResponseDTO partida = iniciar(sessao, escolhidos);
+
+        LOG.infof("Partida iniciada: sessaoId=%d jogadoresEmCampo=%d", sessaoId, escolhidos.size());
+        return partida;
     }
 
     private PartidaResponseDTO iniciar(Sessao sessao, List<JogadorSessao> escolhidos) {
@@ -65,7 +77,7 @@ public class PartidaService {
                     Response.Status.CONFLICT);
         }
 
-        Sorteador.Times times = sorteador.sortear(escolhidos);
+        Sorteador.Times times = sorteador.sortear(sessaoId, escolhidos);
         times.ladoA().forEach(j -> escolherLadoCampo(j, LadoTime.A));
         times.ladoB().forEach(j -> escolherLadoCampo(j, LadoTime.B));
         jogadorRepository.flush();
@@ -75,6 +87,8 @@ public class PartidaService {
 
     @Transactional
     public PartidaResponseDTO registrarResultado(Long sessaoId, ResultadoPartidaRequestDTO req) {
+        LOG.infof("Registrando resultado da partida: sessaoId=%d resultado=%s",
+                sessaoId, req.resultado());
         Sessao sessao = sessaoService.buscarSessaoAtivaPorId(sessaoId);
 
         LadoTime perdedor = switch (req.resultado()) {
@@ -86,7 +100,9 @@ public class PartidaService {
         mandarParaFimDaFila(sessao, perdedor);
         primeirosProximosEmCampo(sessao, perdedor);
 
-        return abrirPartida(sessao);
+        PartidaResponseDTO partida = abrirPartida(sessao);
+        LOG.infof("Resultado registrado e próxima partida preparada: sessaoId=%d", sessaoId);
+        return partida;
     }
 
     /*
@@ -99,7 +115,7 @@ public class PartidaService {
         List<JogadorSessao> fila = jogadorRepository.naFila(sessao.id);
 
         return PartidaResponseDTO.from(
-                new Sorteador.Times(ladoA, ladoB), fila);
+                new Sorteador.Times(sessao.id, ladoA, ladoB), fila);
     }
 
     private void mandarParaFimDaFila(Sessao sessao, LadoTime lado) {

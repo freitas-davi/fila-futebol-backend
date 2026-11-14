@@ -6,6 +6,8 @@ import pilantras.domain.enums.LadoTime;
 
 public record JogadorResponseDTO(
 
+        Long id,
+
         String nome,
 
         Categoria categoria,
@@ -19,7 +21,12 @@ public record JogadorResponseDTO(
 
     public static JogadorResponseDTO from(JogadorSessao j) {
         return new JogadorResponseDTO(
-                j.nome, j.categoria, j.status, j.lado, j.posicaoFila
+                j.id,
+                j.nome,
+                j.categoria,
+                j.status,
+                j.lado,
+                j.posicaoFila
         );
     }
 

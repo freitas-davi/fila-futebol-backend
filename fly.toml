@@ -1,0 +1,19 @@
+app = "na-lista"
+primary_region = "gru"
+
+[build]
+  dockerfile = "src/main/docker/Dockerfile.jvm"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "15s"
+    method = "GET"
+    path = "/q/health/ready"
+    timeout = "5s"

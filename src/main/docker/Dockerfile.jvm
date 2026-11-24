@@ -2,7 +2,7 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /workspace
 COPY . .
-RUN chmod +x ./mvnw && ./mvnw -B package -DskipTests
+RUN mvn -B package -DskipTests
 
 FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.24
 

@@ -29,16 +29,27 @@ public class HttpLoggingFilter implements ContainerRequestFilter, ContainerRespo
     public void filter(ContainerRequestContext requestContext,
                        ContainerResponseContext responseContext) throws IOException {
         Long requestStart = (Long) requestContext.getProperty(REQUEST_START);
-        long durationMs = (System.nanoTime() - requestStart) / 1_000_000;
-        String message = "Requisição concluída: %s %s - status %d - %d ms";
+        String path = requestContext.getUriInfo().getPath();
+        int status = responseContext.getStatus();
 
-        if (responseContext.getStatus() >= 400) {
-            LOG.warnf(message, requestContext.getMethod(), requestContext.getUriInfo().getPath(),
-                    responseContext.getStatus(), durationMs);
+        if (requestStart == null) {
+            String message = "Requisição concluída: %s %s - status %d - duração indisponível";
+            if (status >= 400) {
+                LOG.warnf(message, requestContext.getMethod(), path, status);
+            } else {
+                LOG.infof(message, requestContext.getMethod(), path, status);
+            }
             return;
         }
 
-        LOG.infof(message, requestContext.getMethod(), requestContext.getUriInfo().getPath(),
-                responseContext.getStatus(), durationMs);
+        long durationMs = (System.nanoTime() - requestStart) / 1_000_000;
+        String message = "Requisição concluída: %s %s - status %d - %d ms";
+
+        if (status >= 400) {
+            LOG.warnf(message, requestContext.getMethod(), path, status, durationMs);
+            return;
+        }
+
+        LOG.infof(message, requestContext.getMethod(), path, status, durationMs);
     }
 }
